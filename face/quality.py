@@ -2,7 +2,7 @@ from .__utils import detect_faces
 from torch import Tensor
 
 
-def assess_image(image: Tensor):
+def assess_quality(image: Tensor):
     face_detections = detect_faces(image)
 
     assessment_parameters = []
