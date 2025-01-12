@@ -11,6 +11,6 @@ def assess_quality(image: Tensor):
         confidence = face_detection["confidence"]
         head_position = find_pose(face_detection["keypoints"])
 
-        assessment_parameters.append([confidence, head_position])
+        assessment_parameters.append({'confidence': confidence, **head_position})
 
     return len(face_detections), assessment_parameters

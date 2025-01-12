@@ -4,8 +4,10 @@ import einops
 import numpy as np
 import torch
 import warnings
+from typing import Literal
 
 detector = MTCNN()
+HeadPoseAngle = Literal['roll', 'pitch', 'yaw']
 
 
 def tensor2cv(tensor: Tensor) -> np.ndarray:
@@ -48,7 +50,7 @@ def detect_face(image, *, warn=True):
     return face_detection
 
 
-def find_pose(keypoints):
+def find_pose(keypoints) -> dict[HeadPoseAngle, float]:
     left_eye_x, left_eye_y = keypoints["left_eye"]
     right_eye_x, right_eye_y = keypoints["right_eye"]
 
@@ -80,4 +82,4 @@ def find_pose(keypoints):
     yaw = (-90 + 90 / 0.5 * dXnose / dXtot) if dXtot != 0 else 0
     pitch = (-90 + 90 / 0.5 * dYnose / dYtot) if dYtot != 0 else 0
 
-    return [roll * 180 / np.pi, pitch, -yaw]
+    return {'roll': roll * 180 / np.pi, 'pitch': pitch, 'yaw': -yaw}
