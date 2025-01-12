@@ -48,3 +48,36 @@ def detect_face(image, *, warn=True):
     return face_detection
 
 
+def find_pose(keypoints):
+    left_eye_x, left_eye_y = keypoints["left_eye"]
+    right_eye_x, right_eye_y = keypoints["right_eye"]
+
+    dPx_eyes = max((right_eye_x - left_eye_x), 1)
+    dPy_eyes = (right_eye_y - left_eye_y)
+
+    roll = np.arctan(dPy_eyes / dPx_eyes)
+
+    cos_theta = np.cos(roll)
+    sin_theta = np.sin(roll)
+    rotation_matrix = np.array([[cos_theta, -sin_theta], [sin_theta, cos_theta]])
+
+    rotated_keypoints = {}
+    for key, (x, y) in keypoints.items():
+        point = np.array([x, y]) - np.array([left_eye_x, left_eye_y])
+        rotated_point = np.dot(rotation_matrix, point) + np.array([left_eye_x, left_eye_y])
+        rotated_keypoints[key] = (rotated_point[0], rotated_point[1])
+
+    rotated_eye_right, rotated_eye_left = rotated_keypoints["right_eye"], rotated_keypoints["left_eye"]
+    rotated_mouth_right, rotated_mouth_left = rotated_keypoints["mouth_right"], rotated_keypoints["mouth_left"]
+    rotated_nose = rotated_keypoints["nose"]
+
+    dXtot = (rotated_eye_right[0] - rotated_eye_left[0] + rotated_mouth_right[0] - rotated_mouth_left[0]) / 2
+    dYtot = (rotated_mouth_left[1] - rotated_eye_left[1] + rotated_mouth_right[1] - rotated_eye_right[1]) / 2
+
+    dXnose = (rotated_eye_right[0] - rotated_nose[0] + rotated_mouth_right[0] - rotated_nose[0]) / 2
+    dYnose = (rotated_mouth_left[1] - rotated_nose[1] + rotated_mouth_right[1] - rotated_nose[1]) / 2
+
+    yaw = (-90 + 90 / 0.5 * dXnose / dXtot) if dXtot != 0 else 0
+    pitch = (-90 + 90 / 0.5 * dYnose / dYtot) if dYtot != 0 else 0
+
+    return [roll * 180 / np.pi, pitch, -yaw]
