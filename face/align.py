@@ -78,11 +78,13 @@ def align_most_confident_face(image: Tensor, *, warn: bool = True) -> Tensor:
     return _align_face(image, face_detection)
 
 
-def align_faces(image: Tensor, *, min_confidence: float = 0.95) -> list[Tensor]:
+def align_faces(image: Tensor, face_detections=None) -> list[Tensor]:
+    if face_detections is None:
+        face_detections = detect_faces(image)
+
     face_images = []
-    for face_detection in detect_faces(image):
-        if face_detection['confidence'] >= min_confidence:
-            face_image = _align_face(image, face_detection)
-            face_images.append(face_image)
+    for face_detection in face_detections:
+        face_image = _align_face(image, face_detection)
+        face_images.append(face_image)
 
     return face_images
