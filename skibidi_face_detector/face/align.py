@@ -39,6 +39,9 @@ def _align_eyes(image: Tensor, face_detection) -> (Tensor, tuple[int, int, int, 
 
     x, y, w, h = _convert_box_to_desired_ratio(x, y, w, h)
 
+    x = max(0, x)
+    y = max(0, y)
+
     return cv2tensor(rotated_image), (x, y, w, h)
 
 
