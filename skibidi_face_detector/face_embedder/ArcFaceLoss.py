@@ -24,15 +24,15 @@ class ArcFaceLoss(nn.Module):
         nn.init.xavier_normal_(self.W)
 
     def forward(self, embeddings, labels):
-        cosine = self.get_cosine(embeddings)  # (None, n_classes)
-        mask = self.get_target_mask(labels)  # (None, n_classes)
-        cosine_of_target_classes = cosine[mask == 1]  # (None, )
+        cosine = self.get_cosine(embeddings)
+        mask = self.get_target_mask(labels)
+        cosine_of_target_classes = cosine[mask == 1]
         modified_cosine_of_target_classes = self.modify_cosine_of_target_classes(
             cosine_of_target_classes
-        )  # (None, )
-        diff = (modified_cosine_of_target_classes - cosine_of_target_classes).unsqueeze(1)  # (None,1)
-        logits = cosine + (mask * diff)  # (None, n_classes)
-        logits = self.scale_logits(logits)  # (None, n_classes)
+        )
+        diff = (modified_cosine_of_target_classes - cosine_of_target_classes).unsqueeze(1)
+        logits = cosine + (mask * diff)
+        logits = self.scale_logits(logits)
         return nn.CrossEntropyLoss()(logits, labels)
 
     def get_cosine(self, embeddings):
