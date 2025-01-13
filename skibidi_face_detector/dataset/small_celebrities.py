@@ -1,19 +1,20 @@
 import torch
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
+import torchvision.transforms.v2 as transforms
 from datasets import load_dataset
 from collections import Counter
 
 
-dataset = load_dataset("theneuralmaze/celebrity_faces").with_format('torch')['train']
-label_counts = Counter(dataset['label'])
+ds = load_dataset("theneuralmaze/celebrity_faces").with_format('torch')['train']
+label_counts = Counter(ds['label'])
+labels_list = list(label_counts.keys())
 
 
 def filter_minimum_n_examples(example):
     return label_counts[example['label']] >= 13
 
 
-filtered_dataset = dataset.filter(filter_minimum_n_examples)
+filtered_ds = ds.filter(filter_minimum_n_examples)
 
 transformer = transforms.Compose([
     transforms.ConvertImageDtype(torch.float32),
@@ -22,10 +23,12 @@ transformer = transforms.Compose([
 
 def transform(example):
     example['image'] = transformer(example['image'])
+    example['label'] = labels_list.index(example['label'])
     return example
 
 
-ds = filtered_dataset.map(transform, batched=False)
+num_classes = len(set(filtered_ds['label']))
+ds = filtered_ds.map(transform, batched=False)
 
 split = ds.train_test_split(test_size=0.2)
 train_ds, test_ds = split['train'], split['test']
@@ -35,4 +38,5 @@ test_loader = DataLoader(test_ds, shuffle=False)
 
 augment = transforms.Compose([
     transforms.ColorJitter(brightness=0.2, contrast=0.3, saturation=0.2, hue=0.1),
+    transforms.RandomHorizontalFlip(p=0.5),
 ])

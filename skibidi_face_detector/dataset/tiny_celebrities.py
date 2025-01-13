@@ -4,6 +4,7 @@ import torchvision.transforms as transforms
 from datasets import load_dataset
 
 ds = load_dataset("brendenc/celeb-identities").with_format('torch')['train']
+num_classes = len(set(ds['labels']))
 
 transformer = transforms.Compose([
     transforms.ConvertImageDtype(torch.float32),
